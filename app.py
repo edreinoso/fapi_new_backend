@@ -19,5 +19,15 @@ active_df = (
     .reset_index(drop=True)
 )
 
-st.header("Players by Total Points")
+st.header("Active Players by Total Points")
 st.dataframe(active_df, use_container_width=True)
+
+points_by_position = (
+    active_df.groupby("position")["total points"]
+    .sum()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+
+st.header("Total Points by Position")
+st.dataframe(points_by_position, use_container_width=True)
