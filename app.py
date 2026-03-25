@@ -24,18 +24,12 @@ active_df = (
     .reset_index(drop=True)
 )
 
-st.header("Active Players by Total Points")
-st.dataframe(active_df, use_container_width=True)
-
 points_by_position = (
     active_df.groupby("position")["total points"]
     .sum()
     .sort_values(ascending=False)
     .reset_index()
 )
-
-st.header("Total Points by Position")
-st.dataframe(points_by_position, use_container_width=True)
 
 # --- Match stats: Goals scored for active teams ---
 match_df = load_matches_data()
@@ -53,7 +47,6 @@ goals_conceded = (
     .reset_index()
 )
 
-
 upcoming = (
     match_df[(match_df["team_name"].isin(active_team_names)) & (match_df["match_status"] == 0)]
     .sort_values("match_datetime")
@@ -69,19 +62,29 @@ goals_scored_and_opponent = (
     .sort_values("goals_scored", ascending=False)
     .reset_index(drop=True)
 )
-
 goals_conceded_and_opponent = (
     goals_conceded.merge(upcoming, on="team_name")
     .sort_values("goals_conceded", ascending=True)
     .reset_index(drop=True)
 )
 
-col1, col2 = st.columns(2)
 
-with col1:
-    st.subheader("Most Goals Scored")
-    st.dataframe(goals_scored_and_opponent, use_container_width=True)
 
-with col2:
-    st.subheader("Least Goals Conceded")
-    st.dataframe(goals_conceded_and_opponent, use_container_width=True)
+tab1, tab2 = st.tabs(["Players", "Matches"])
+
+with tab1:
+    # all your player tables here
+    st.header("Active Players by Total Points")
+    st.dataframe(active_df, use_container_width=True)
+    st.header("Total Points by Position")
+    st.dataframe(points_by_position, use_container_width=True)
+
+with tab2:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Most Goals Scored")
+        st.dataframe(goals_scored_and_opponent, use_container_width=True)
+
+    with col2:
+        st.subheader("Least Goals Conceded")
+        st.dataframe(goals_conceded_and_opponent, use_container_width=True)
