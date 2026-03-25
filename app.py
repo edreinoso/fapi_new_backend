@@ -3,15 +3,20 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 
-DATA_PATH = Path(__file__).parent / "data" / "before_quarter_finals_1_leg.csv"
+PLAYERS_DATA_PATH = Path(__file__).parent / "data" / "before_quarter_finals_1_leg.csv"
+MATCHES_DATA_PATH = Path(__file__).parent / "data" / "ucl_team_match_stats.csv"
 
 @st.cache_data
-def load_data():
-    return pd.read_csv(DATA_PATH)
+def load_players_data():
+    return pd.read_csv(PLAYERS_DATA_PATH)
+
+@st.cache_data
+def load_matches_data():
+    return pd.read_csv(MATCHES_DATA_PATH)
 
 st.title("UEFA Champions League Fantasy")
 
-df = load_data()
+df = load_players_data()
 
 active_df = (
     df[df["isActive"] == 1]
@@ -31,3 +36,48 @@ points_by_position = (
 
 st.header("Total Points by Position")
 st.dataframe(points_by_position, use_container_width=True)
+
+# --- Match stats: Goals scored & next opponent for active teams ---
+match_df = load_matches_data()
+active_team_names = match_df[match_df["match_status"] == 0]["team_name"].unique()
+
+played = match_df[(match_df["team_name"].isin(active_team_names)) & (match_df["match_status"] == 2)]
+goals_scored = (
+    played.groupby("team_name")["goals_scored"]
+    .sum()
+    .reset_index()
+)
+goals_conceded = (
+    played.groupby("team_name")["goals_conceded"]
+    .sum()
+    .reset_index()
+)
+
+
+upcoming = (
+    match_df[(match_df["team_name"].isin(active_team_names)) & (match_df["match_status"] == 0)]
+    .sort_values("match_datetime")
+    .groupby("team_name")
+    .first()
+    .reset_index()
+    [["team_name", "opponent_team_name"]]
+    .rename(columns={"opponent_team_name": "next_opponent"})
+)
+
+goals_scored_and_opponent = (
+    goals_scored.merge(upcoming, on="team_name")
+    .sort_values("goals_scored", ascending=False)
+    .reset_index(drop=True)
+)
+
+goals_conceded_and_opponent = (
+    goals_conceded.merge(upcoming, on="team_name")
+    .sort_values("goals_conceded", ascending=True)
+    .reset_index(drop=True)
+)
+
+st.header("Most Goals Scored by Teams")
+st.dataframe(goals_scored_and_opponent, use_container_width=True)
+
+st.header("Least Goals Conceded by Teams")
+st.dataframe(goals_conceded_and_opponent, use_container_width=True)
