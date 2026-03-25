@@ -37,7 +37,7 @@ points_by_position = (
 st.header("Total Points by Position")
 st.dataframe(points_by_position, use_container_width=True)
 
-# --- Match stats: Goals scored & next opponent for active teams ---
+# --- Match stats: Goals scored for active teams ---
 match_df = load_matches_data()
 active_team_names = match_df[match_df["match_status"] == 0]["team_name"].unique()
 
@@ -76,8 +76,12 @@ goals_conceded_and_opponent = (
     .reset_index(drop=True)
 )
 
-st.header("Most Goals Scored by Teams")
-st.dataframe(goals_scored_and_opponent, use_container_width=True)
+col1, col2 = st.columns(2)
 
-st.header("Least Goals Conceded by Teams")
-st.dataframe(goals_conceded_and_opponent, use_container_width=True)
+with col1:
+    st.subheader("Most Goals Scored")
+    st.dataframe(goals_scored_and_opponent, use_container_width=True)
+
+with col2:
+    st.subheader("Least Goals Conceded")
+    st.dataframe(goals_conceded_and_opponent, use_container_width=True)
