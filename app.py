@@ -20,12 +20,15 @@ def load_players_data():
 def load_matches_data():
     return pd.read_csv(MATCHES_DATA_PATH)
 
-def display_teams_line_chart(match_df, selected_team):
+def display_teams_line_chart(match_df, selected_team, venue_filter="All"):
+    mask = (match_df["team_name"] == selected_team) & (match_df["match_status"] == 2)
+    if venue_filter == "Home":
+        mask &= match_df["is_home"] == True
+    elif venue_filter == "Away":
+        mask &= match_df["is_home"] == False
+
     team_matches = (
-        match_df[
-            (match_df["team_name"] == selected_team) &
-            (match_df["match_status"] == 2)
-        ][["match_datetime", "opponent_team_code", "goals_scored", "goals_conceded", "is_home"]]
+        match_df[mask][["match_datetime", "opponent_team_code", "goals_scored", "goals_conceded", "is_home"]]
         .copy()
     )
 
@@ -153,12 +156,24 @@ with tab2:
     active_teams_chart = sorted(match_df[match_df["match_status"] == 0]["team_name"].unique())
     selected_team = st.selectbox("Select a team", active_teams_chart)
 
+    venue_filter = st.radio(
+        "Match venue",
+        options=["All", "Home", "Away"],
+        horizontal=True,
+    )
+
     col1, col2 = st.columns([1, 2])
 
     with col1:
         st.subheader("Match Data")
+        mask = (match_df["team_name"] == selected_team) & (match_df["match_status"] == 2)
+        if venue_filter == "Home":
+            mask &= match_df["is_home"] == True
+        elif venue_filter == "Away":
+            mask &= match_df["is_home"] == False
+
         team_matches = (
-            match_df[(match_df["team_name"] == selected_team) & (match_df["match_status"] == 2)]
+            match_df[mask]
             [["match_datetime", "opponent_team_code", "goals_scored", "goals_conceded", "is_home"]]
             .sort_values("match_datetime")
             .reset_index(drop=True)
@@ -172,7 +187,7 @@ with tab2:
 
     with col2:
         st.subheader("Goals per Match")
-        display_teams_line_chart(match_df, selected_team)
+        display_teams_line_chart(match_df, selected_team, venue_filter)
 
     col1, col2 = st.columns(2)
     with col1:
