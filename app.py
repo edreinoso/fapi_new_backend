@@ -7,6 +7,11 @@ import altair as alt
 PLAYERS_DATA_PATH = Path(__file__).parent / "data" / "before_quarter_finals_1_leg.csv"
 MATCHES_DATA_PATH = Path(__file__).parent / "data" / "ucl_team_match_stats.csv"
 
+st.set_page_config(
+    page_title="Fapi",
+    layout="wide",
+)
+
 @st.cache_data
 def load_players_data():
     return pd.read_csv(PLAYERS_DATA_PATH)
@@ -148,20 +153,26 @@ with tab2:
     active_teams_chart = sorted(match_df[match_df["match_status"] == 0]["team_name"].unique())
     selected_team = st.selectbox("Select a team", active_teams_chart)
 
-    team_matches = (
-        match_df[(match_df["team_name"] == selected_team) & (match_df["match_status"] == 2)]
-        [["match_datetime", "opponent_team_code", "goals_scored", "goals_conceded", "is_home"]]
-        .sort_values("match_datetime")
-        .reset_index(drop=True)
-    )
-    
-    team_matches["match"] = team_matches.apply(
-        lambda r: f"{r['opponent_team_code']} ({'H' if r['is_home'] else 'A'})", axis=1
-    )
+    col1, col2 = st.columns([1, 2])
 
-    st.dataframe(team_matches)
+    with col1:
+        st.subheader("Match Data")
+        team_matches = (
+            match_df[(match_df["team_name"] == selected_team) & (match_df["match_status"] == 2)]
+            [["match_datetime", "opponent_team_code", "goals_scored", "goals_conceded", "is_home"]]
+            .sort_values("match_datetime")
+            .reset_index(drop=True)
+        )
+        
+        team_matches["match"] = team_matches.apply(
+            lambda r: f"{r['opponent_team_code']} ({'H' if r['is_home'] else 'A'})", axis=1
+        )
 
-    display_teams_line_chart(match_df, selected_team)
+        st.dataframe(team_matches)
+
+    with col2:
+        st.subheader("Goals per Match")
+        display_teams_line_chart(match_df, selected_team)
 
     col1, col2 = st.columns(2)
     with col1:
