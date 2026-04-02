@@ -53,6 +53,15 @@ def display_teams_line_chart(match_df, selected_team, venue_filter="All"):
         {"goals_scored": "Scored", "goals_conceded": "Conceded"}
     )
 
+    selected_metrics = st.pills(
+        "Metrics",
+        options=["Scored", "Conceded"],
+        default=["Scored", "Conceded"],
+        selection_mode="multi",
+    )
+
+    chart_data = chart_data[chart_data["metric"].isin(selected_metrics)]
+
     chart = (
         alt.Chart(chart_data)
         .mark_line(point=True)
