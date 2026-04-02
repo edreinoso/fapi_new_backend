@@ -28,7 +28,7 @@ def display_teams_line_chart(match_df, selected_team):
     team_matches = team_matches.sort_values("match_datetime").reset_index(drop=True)
 
     team_matches["match_label"] = team_matches.apply(
-        lambda r: f"{r['opponent_team_code']} ({'H' if r['is_home'] else 'A'})",
+        lambda r: f"{r['opponent_team_code']} ({'H' if r['is_home'] else 'A'}) {r['match_datetime'].strftime('%b %d')}",
         axis=1
     )
 
@@ -50,7 +50,8 @@ def display_teams_line_chart(match_df, selected_team):
         .mark_line(point=True)
         .encode(
             x=alt.X(
-                "match_order:O",
+                "match_label:N",
+                sort=alt.SortField("match_order"),
                 title="Match",
                 axis=alt.Axis(
                     labelAngle=-45,
